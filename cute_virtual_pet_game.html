@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cute Virtual Pet Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #ffeef8, #f0e6ff, #e6f3ff);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            max-width: 800px;
+            width: 95%;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            position: relative;
+        }
+
+        .splash-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .tamagotchi-image {
+            width: 400px;
+            height: 491px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: visible;
+            transition: transform 0.3s ease;
+        }
+
+        .tamagotchi-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, 
+                rgba(255, 20, 147, 0.4) 0%,
+                rgba(255, 20, 147, 0.2) 50%,
+                rgba(255, 20, 147, 0) 70%
+            );
+            border-radius: 50%;
+            z-index: 1;
+            pointer-events: none;
+            transform: scale(1.1);
+            transition: all 0.3s ease;
+        }
+
+        .tamagotchi-image:hover {
+            transform: scale(1.05);
+        }
+
+        .tamagotchi-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            border-radius: 50%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .game-title {
+            justify-content: center;
+            font-size: 2.5em;
+            color: #ff1493;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .welcome-message {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ffb9dc, #ff1493);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 20, 147, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(255, 0, 136, 0.4);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .input-group {
+            margin: 20px auto;
+            max-width: 400px;
+            width: 80%;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            color: #333;
+            text-align: center;
+        }
+
+        .input-group input {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .pet-selection {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .pet-option {
+            background: #f9f9f9;
+            border: 3px solid transparent;
+            border-radius: 15px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .pet-option:hover {
+            border-color: #ff69b4;
+            transform: scale(1.05);
+        }
+
+        .pet-option.selected {
+            border-color: #ff1493;
+            background: #ffe4e1;
+        }
+
+        .pet-emoji {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .game-screen {
+            display: none;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .player-info {
+            justify-content: center;
+            font-size: 1.8em;
+            color: #333;
+        }
+
+        .pet-display {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .pet-image {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .pet-age {
+            margin-top: 10px;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-bar {
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .stat-progress {
+            width: 100%;
+            height: 20px;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stat-fill {
+            height: 100%;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .energy-fill { background: linear-gradient(90deg, #ffd700, #ffed4e); }
+        .hunger-fill { background: linear-gradient(90deg, #ff6b6b, #ff8e8e); }
+        .happiness-fill { background: linear-gradient(90deg, #4ecdc4, #44a08d); }
+        .hygiene-fill { background: linear-gradient(90deg, #74b9ff, #0984e3); }
+        .learning-fill { background: linear-gradient(90deg, #a29bfe, #6c5ce7); }
+
+        .stat-fill.critical {
+            animation: flash 0.5s infinite;
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .actions-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 80px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #00b894;
+            border-left: 5px solid #00a085;
+        }
+
+        .notification.warning {
+            background: #fdcb6e;
+            border-left: 5px solid #e17055;
+            color: #333;
+        }
+
+        .notification.error {
+            background: #e17055;
+            border-left: 5px solid #d63031;
+        }
+
+        .menu-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .reset-button {
+            display: none;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+        
+        .reset-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .menu-btn {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .quiz-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 3px solid #a29bfe;
+            display: none;
+        }
+
+        .quiz-question {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .quiz-answers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .quiz-answer {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-answer:hover {
+            border-color: #a29bfe;
+            background: #f0f0ff;
+        }
+
+        .birthday-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 182, 193, 0.9);
+            z-index: 999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .birthday-content {
+            text-align: center;
+            color: #ff1493;
+        }
+
+        .birthday-pets {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .birthday-pet {
+            font-size: 3em;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ff69b4;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            .pet-selection {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .game-title {
+                font-size: 2em;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Splash Screen -->
+        <div id="splashScreen" class="splash-screen">
+            <div class="tamagotchi-image">
+                <img src="assets/cute-virtual-pet-game-pink-400x491.png" alt="Cute Virtual Pet">
+            </div>
+            <h1 class="game-title">Cute Virtual Pet Game</h1>
+            <p class="welcome-message">
+                Welcome to the most adorable virtual pet experience! 🐾<br>
+                Caring for pets teaches us responsibility, love, and compassion.<br>
+                Just like real pets, your virtual friend needs your attention and care.<br>
+                <strong>Remember: Love and care make the world a better place!</strong>
+            </p>
+            <button class="btn" onclick="showSetup()">🌟 Start Your Journey 🌟</button>
+            <div class="menu-buttons">
+                <button class="btn" onclick="showInstructions()">📖 How to Play</button>
+                <button class="btn" onclick="showSettings()">⚙️ Settings</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="game-screen">
+            <div class="game-header">
+                <div class="player-info">
+                    <span id="playerName">Player</span> & <span id="petName">Pet</span>
+                </div>
+            </div>
+
+            <div class="pet-display">
+                <div class="pet-image" id="petImage">🥚</div>
+                <div class="pet-age">Age: <span id="petAge">0 minutes</span></div>
+            </div>
+
+            <div class="stats-container" id="statsContainer">
+                <div class="stat-bar">
+                    <div class="stat-label">🔥 Warmth</div>
+                    <div class="stat-progress">
+                        <div class="stat-fill energy-fill" id="warmthFill" style="width: 50%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-container" id="actionsContainer">
+                <!-- Actions will be populated based on game state -->
+            </div>
+
+            <div class="quiz-container" id="quizContainer">
+                <div class="quiz-question" id="quizQuestion"></div>
+                <div class="quiz-answers" id="quizAnswers"></div>
+            </div>
+            <div class="menu-buttons">
+                <button class="menu-btn" onclick="showInstructions()">📖 Help</button>
+                <button class="menu-btn" onclick="showSettings()">⚙️ Settings</button>
+                <button class="menu-btn" onclick="saveAndExit()">💾 Save & Exit</button>
+            </div>
+            <button id="resetButton" class="reset-button" onclick="resetGame()">🔄 Start Over</button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="setupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('setupModal')">&times;</span>
+            <h2>Welcome, Future Pet Parent! 🌟</h2>
+            <div class="input-group">
+                <label for="playerNameInput">What's your name?</label>
+                <input type="text" id="playerNameInput" placeholder="Enter your name here please human">
+            </div>
+            <div class="input-group">
+                <label>Choose your pet:</label>
+                <div class="pet-selection">
+                    <div class="pet-option" data-pet="cat">
+                        <div class="pet-emoji">🐱</div>
+                        <div>Cat</div>
+                    </div>
+                    <div class="pet-option" data-pet="dog">
+                        <div class="pet-emoji">🐶</div>
+                        <div>Dog</div>
+                    </div>
+                    <div class="pet-option" data-pet="rabbit">
+                        <div class="pet-emoji">🐰</div>
+                        <div>Rabbit</div>
+                    </div>
+                    <div class="pet-option" data-pet="hamster">
+                        <div class="pet-emoji">🐹</div>
+                        <div>Hamster</div>
+                    </div>
+                    <div class="pet-option" data-pet="fish">
+                        <div class="pet-emoji">🐠</div>
+                        <div>Fish</div>
+                    </div>
+                    <div class="pet-option" data-pet="pig">
+                        <div class="pet-emoji">🐷</div>
+                        <div>Pig</div>
+                    </div>
+                    <div class="pet-option" data-pet="penguin">
+                        <div class="pet-emoji">🐧</div>
+                        <div>Penguin</div>
+                    </div>
+                    <div class="pet-option" data-pet="turtle">
+                        <div class="pet-emoji">🐢</div>
+                        <div>Turtle</div>
+                    </div>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="petNameInput">Name your pet:</label>
+                <input type="text" id="petNameInput" placeholder="Enter your cute pet's name please">
+            </div>
+            <button class="btn" onclick="startGame()">🎮 Start Game</button>
+        </div>
+    </div>
+
+    <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('instructionsModal')">&times;</span>
+            <h2>How to Play 📖</h2>
+            <div style="text-align: left; line-height: 1.6;">
+                <h3>🥚 Egg Stage:</h3>
+                <p>• Solve math problems to keep your egg warm<br>
+                • Keep warmth in the "goldilocks zone" - not too hot, not too cold!<br>
+                • Your pet will hatch when ready</p>
+                
+                <h3>🐾 Pet Care:</h3>
+                <p>• Monitor 5 stats: Energy, Hunger, Happiness, Hygiene, Learning<br>
+                • Use action buttons to improve stats<br>
+                • Answer quiz questions when teaching your pet<br>
+                • Red flashing bars mean danger - act quickly!</p>
+                
+                <h3>🎂 Special Events:</h3>
+                <p>• Birthday parties every year with all pets<br>
+                • Pet Patrol unlocks at age 5<br>
+                • Difficulty increases as you level up</p>
+                
+                <h3>💡 Tips:</h3>
+                <p>• Learning decays fastest - teach regularly<br>
+                • Happy pets live longer<br>
+                • Stats are interconnected - balance is key!</p>
+            </div>
+            <button class="btn" onclick="closeModal('instructionsModal')">Got it! 👍</button>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('settingsModal')">&times;</span>
+            <h2>Settings ⚙️</h2>
+            <div class="input-group">
+                <label for="difficultySelect">Difficulty Level (1-10):</label>
+                <select id="difficultySelect" style="width: 100%; padding: 10px; border-radius: 5px;">
+                    <option value="1">1 - Very Easy</option>
+                    <option value="2">2 - Easy</option>
+                    <option value="3" selected>3 - Normal</option>
+                    <option value="4">4 - Medium</option>
+                    <option value="5">5 - Hard</option>
+                    <option value="6">6 - Very Hard</option>
+                    <option value="7">7 - Expert</option>
+                    <option value="8">8 - Master</option>
+                    <option value="9">9 - Legendary</option>
+                    <option value="10">10 - Impossible</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="quizDifficultySelect">Quiz Difficulty:</label>
+                <select id="quizDifficultySelect" style="width: 100%; padding: 10px; border-radius: 5px;">
+                    <option value="easy">Easy (Age 6-8)</option>
+                    <option value="normal" selected>Normal (Age 10-12)</option>
+                    <option value="hard">Hard (Age 14-16)</option>
+                </select>
+            </div>
+            <button class="btn" onclick="applySettings()">Apply Settings</button>
+        </div>
+    </div>
+
+    <!-- Birthday Overlay -->
+    <div id="birthdayOverlay" class="birthday-overlay">
+        <div class="birthday-content">
+            <h1>🎉 HAPPY BIRTHDAY! 🎂</h1>
+            <div class="birthday-pets">
+                <div class="birthday-pet">🐱</div>
+                <div class="birthday-pet">🐶</div>
+                <div class="birthday-pet">🐰</div>
+                <div class="birthday-pet">🐹</div>
+                <div class="birthday-pet">🐠</div>
+                <div class="birthday-pet">🐷</div>
+                <div class="birthday-pet">🐧</div>
+                <div class="birthday-pet">🐢</div>
+            </div>
+            <p>Your pet is having a birthday party!</p>
+            <p>All pets are playing tag together! 🏃‍♂️</p>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            player: { name: '', pet: '', petName: '' },
+            pet: {
+                type: '',
+                name: '',
+                age: 0,
+                isHatched: false,
+                isDead: false,
+                stats: {
+                    warmth: 25,
+                    energy: 100,
+                    hunger: 100,
+                    happiness: 100,
+                    hygiene: 100,
+                    learning: 100
+                },
+                maxStats: {
+                    energy: 100,
+                    hunger: 100,
+                    happiness: 100,
+                    hygiene: 100,
+                    learning: 100
+                }
+            },
+            difficulty: 3,
+            quizDifficulty: 'normal',
+            statsDecayRate: 0.5,
+            statsDecayInterval: 10000,
+            coolingInterval: null,
+            coolingRate: 5, // 25% over 5 seconds = 5% per second = 1% every 200ms
+            gameStartTime: Date.now(),
+            lastUpdate: Date.now(),
+            isBirthdayTime: false,
+            birthdayEndTime: 0,
+            currentQuiz: null,
+            level: 1
+        };
+
+        // Pet emojis for different stages
+        const petEmojis = {
+            cat: { egg: '🥚', baby: '🐱', adult: '🐈', old: '🐈‍⬛' },
+            dog: { egg: '🥚', baby: '🐶', adult: '🐕', old: '🐕‍🦺' },
+            rabbit: { egg: '🥚', baby: '🐰', adult: '🐇', old: '🐰' },
+            hamster: { egg: '🥚', baby: '🐹', adult: '🐹', old: '🐹' },
+            fish: { egg: '🥚', baby: '🐠', adult: '🐟', old: '🐡' },
+            pig: { egg: '🥚', baby: '🐷', adult: '🐖', old: '🐗' },
+            penguin: { egg: '🥚', baby: '🐧', adult: '🐧', old: '🐧' },
+            turtle: { egg: '🥚', baby: '🐢', adult: '🐢', old: '🐢' }
+        };
+
+        // Quiz questions
+        const quizQuestions = {
+            easy: [
+                { q: "What is 2 + 3?", a: ["2", "5", "7", "4", "6", "3"], correct: 1 },
+                { q: "How many legs does a cat have?", a: ["6", "2", "4", "8", "3", "5"], correct: 4 },
+                { q: "What color do you get when you mix red and blue?", a: ["Green", "Orange", "Purple", "Brown", "Pink", "Yellow"], correct: 2 },
+                { q: "What is 10 - 5?", a: ["3", "7", "5", "2", "4", "6"], correct: 5 },
+                { q: "Which of these is a fruit?", a: ["Carrot", "Potato", "Lettuce", "Apple", "Celery", "Broccoli"], correct: 3 },
+                { q: "What is the capital of France?", a: ["Berlin", "Madrid", "Rome", "Paris", "London", "Vienna"], correct: 3 },
+                { q: "How many colors are in a rainbow?", a: ["Five", "Eight", "Six", "Seven", "Nine", "Ten"], correct: 0 },
+                { q: "Which animal says 'moo'?", a: ["Duck", "Sheep", "Pig", "Horse", "Cow", "Chicken"], correct: 4 }
+            ],
+            normal: [
+                { q: "What is 7 × 8?", a: ["54", "58", "56", "60", "52", "62"], correct: 2 },
+                { q: "Which planet is closest to the Sun?", a: ["Venus", "Earth", "Mars", "Mercury", "Saturn", "Jupiter"], correct: 3 },
+                { q: "What is 144 ÷ 12?", a: ["10", "14", "13", "11", "12", "15"], correct: 4 },
+                { q: "How many sides does a pentagon have?", a: ["4", "6", "3", "5", "8", "7"], correct: 1 },
+                { q: "What is the chemical symbol for gold?", a: ["Go", "Ag", "Gd", "Fe", "Au", "Pb"], correct: 4 },
+                { q: "Who painted the Mona Lisa?", a: ["Van Gogh", "Rembrandt", "Picasso", "Da Vinci", "Michelangelo", "Raphael"], correct: 3 },
+                { q: "What is the largest mammal in the world?", a: ["African Elephant", "Colossal Squid", "Giraffe", "Blue Whale", "Polar Bear", "Sperm Whale"], correct: 3 },
+                { q: "Which planet is known as the Red Planet?", a: ["Venus", "Jupiter", "Saturn", "Neptune", "Mars", "Uranus"], correct: 4 }
+            ],
+            hard: [
+                { q: "What is the square root of 169?", a: ["11", "14", "12", "13", "15", "16"], correct: 3 },
+                { q: "Which gas makes up about 78% of Earth's atmosphere?", a: ["Oxygen", "Argon", "Carbon Dioxide", "Hydrogen", "Nitrogen", "Helium"], correct: 4 },
+                { q: "What is 15% of 200?", a: ["25", "35", "20", "30", "40", "15"], correct: 3 },
+                { q: "In which year did World War II end?", a: ["1944", "1943", "1946", "1942", "1945", "1947"], correct: 4 },
+                { q: "What is the speed of light in a vacuum (in m/s)?", a: ["300,000,000", "290,000,000", "310,000,000", "299,792,458", "295,000,000", "305,000,000"], correct: 3 },
+                { q: "Which element has the chemical symbol 'Pb'?", a: ["Platinum", "Phosphorus", "Palladium", "Potassium", "Lead", "Polonium"], correct: 4 },
+                { q: "What is the capital of Australia?", a: ["Sydney", "Melbourne", "Brisbane", "Perth", "Canberra", "Adelaide"], correct: 4 },
+                { q: "Who wrote 'Romeo and Juliet'?", a: ["Charles Dickens", "Oscar Wilde", "Mark Twain", "Jane Austen", "William Shakespeare", "Leo Tolstoy"], correct: 4 }
+            ]
+        };
+
+        // Initialize game
+        function showSetup() {
+            document.getElementById('setupModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function showInstructions() {
+            document.getElementById('instructionsModal').style.display = 'block';
+        }
+
+        function showSettings() {
+            document.getElementById('settingsModal').style.display = 'block';
+            document.getElementById('difficultySelect').value = gameState.difficulty;
+            document.getElementById('quizDifficultySelect').value = gameState.quizDifficulty;
+        }
+
+        function applySettings() {
+            gameState.difficulty = parseInt(document.getElementById('difficultySelect').value);
+            gameState.quizDifficulty = document.getElementById('quizDifficultySelect').value;
+            
+            // Update max stats based on difficulty level
+            const multiplier = 1 + (gameState.level - 1) * 0.5;
+            Object.keys(gameState.pet.maxStats).forEach(stat => {
+                gameState.pet.maxStats[stat] = Math.floor(100 * multiplier);
+            });
+            
+            showNotification('Settings updated!', 'success');
+            closeModal('settingsModal');
+        }
+
+        // Pet selection
+        document.querySelectorAll('.pet-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.pet-option').forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                gameState.player.pet = this.dataset.pet;
+            });
+        });
+
+        function startGame() {
+            const playerName = document.getElementById('playerNameInput').value;
+            const petName = document.getElementById('petNameInput').value;
+            
+            if (!playerName || !petName || !gameState.player.pet) {
+                showNotification('Please fill in all fields and select a pet!', 'error');
+                return;
+            }
+            
+            gameState.player.name = playerName;
+            // Set initial warmth based on difficulty
+            const initialWarmth = {
+                1: 50,  // Easy
+                2: 40,  // Easy+
+                3: 25,  // Normal
+                4: 20,  // Normal+
+                5: 15,  // Hard
+                6: 12,  // Hard+
+                7: 10,  // Expert
+                8: 8,   // Master
+                9: 6,   // Legendary
+                10: 5   // Impossible
+            }[gameState.difficulty] || 25; // Default to 25% if not found
+            
+            gameState.player.petName = petName;
+            gameState.pet.type = gameState.player.pet;
+            gameState.pet.name = petName;
+            gameState.pet.stats.warmth = initialWarmth;
+            
+            document.getElementById('playerName').textContent = playerName;
+            document.getElementById('petName').textContent = petName;
+            
+            document.getElementById('splashScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            closeModal('setupModal');
+            
+            updateDisplay();
+            startGameLoop();
+            
+            // Start cooling mechanism when game screen is shown
+            startCoolingMechanism();
+            
+            function startCoolingMechanism() {
+                // Clear any existing cooling interval
+                if (gameState.coolingInterval) {
+                    clearInterval(gameState.coolingInterval);
+                }
+                
+                // Don't start cooling if pet is dead or hatched
+                if (gameState.pet.isDead || gameState.pet.isHatched) {
+                    return;
+                }
+                
+                // Start new cooling interval (decrease warmth by 1% every 200ms = 5% per second)
+                gameState.coolingInterval = setInterval(() => {
+                    if (gameState.pet && !gameState.pet.isHatched && !gameState.pet.isDead) {
+                        gameState.pet.stats.warmth = Math.max(0, gameState.pet.stats.warmth - 1);
+                        
+                        // Only show warning if above 0 but very low
+                        if (gameState.pet.stats.warmth > 0 && gameState.pet.stats.warmth <= 10) {
+                            showNotification('The egg is getting too cold! Keep it warm! ❄️', 'warning');
+                        }
+                        
+                        // Update stats and check for death
+                        updateStats();
+                        // Force update the display to show the new warmth value
+                        updateDisplay();
+                    } else {
+                        // Stop cooling if egg is hatched or dead
+                        clearInterval(gameState.coolingInterval);
+                    }
+                }, 200);
+            }
+            
+            startCoolingMechanism();
+        }
+
+        function formatPetAge() {
+            if (!gameState.gameStartTime) return '0 minutes';
+            
+            const now = Date.now();
+            const ageInMinutes = Math.floor((now - gameState.gameStartTime) / (60 * 1000));
+            
+            if (ageInMinutes < 1) return 'Just born!';
+            
+            // For hatching logic, we'll use the original age calculation
+            if (!gameState.pet.isHatched) {
+                return ageInMinutes < 5 ? 'Hatching soon...' : 'Ready to hatch!';
+            }
+            
+            // For hatched pets, show detailed age
+            const years = Math.floor(ageInMinutes / (60 * 24 * 30 * 12));
+            const months = Math.floor((ageInMinutes % (60 * 24 * 30 * 12)) / (60 * 24 * 30));
+            const days = Math.floor((ageInMinutes % (60 * 24 * 30)) / (60 * 24));
+            const hours = Math.floor((ageInMinutes % (60 * 24)) / 60);
+            const minutes = ageInMinutes % 60;
+            
+            const parts = [];
+            if (years > 0) parts.push(`${years} year${years !== 1 ? 's' : ''}`);
+            if (months > 0) parts.push(`${months} month${months !== 1 ? 's' : ''}`);
+            if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+            if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+            if (minutes > 0 || parts.length === 0) parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+            
+            return parts.join(' ');
+        }
+
+        function resetGame() {
+            if (confirm('Are you sure you want to start over? This will reset all progress.')) {
+                // Reset game state
+                gameState = {
+                    player: { name: gameState.player.name, pet: gameState.player.pet, petName: gameState.player.petName },
+                    pet: {
+                        type: gameState.pet.type,
+                        name: gameState.pet.name,
+                        age: 0,
+                        isHatched: false,
+                        isDead: false,
+                        stats: {
+                            warmth: 25,
+                            energy: 100,
+                            hunger: 100,
+                            happiness: 100,
+                            hygiene: 100,
+                            learning: 100
+                        },
+                        maxStats: {
+                            energy: 100,
+                            hunger: 100,
+                            happiness: 100,
+                            hygiene: 100,
+                            learning: 100
+                        }
+                    },
+                    difficulty: gameState.difficulty,
+                    quizDifficulty: gameState.quizDifficulty,
+                    statsDecayRate: 0.5,
+                    statsDecayInterval: 10000,
+                    coolingInterval: null,
+                    coolingRate: 5,
+                    gameStartTime: Date.now(),
+                    lastUpdate: Date.now(),
+                    isBirthdayTime: false,
+                    birthdayEndTime: 0,
+                    currentQuiz: null,
+                    level: 1
+                };
+                
+                // Reset UI
+                document.getElementById('resetButton').style.display = 'none';
+                updateDisplay();
+                showNotification('New game started! Take good care of your new pet!', 'success');
+            }
+        }
+
+        function updateDisplay() {
+            // Update pet image
+            const petImageEl = document.getElementById('petImage');
+            const resetButton = document.getElementById('resetButton');
+            
+            // Show/hide reset button
+            if (gameState.pet.isDead) {
+                resetButton.style.display = 'block';
+            } else {
+                resetButton.style.display = 'none';
+            }
+            
+            if (!gameState.pet.isHatched) {
+                petImageEl.textContent = '🥚';
+                if (gameState.pet.isDead) {
+                    petImageEl.innerHTML = '🥚💀';
+                }
+            } else {
+                const ageStage = gameState.pet.age < 2 ? 'baby' : 
+                                gameState.pet.age < 6 ? 'adult' : 'old';
+                
+                if (gameState.pet.isDead) {
+                    petImageEl.innerHTML = '😵‍💫';
+                    petImageEl.style.transform = 'rotate(180deg)';
+                } else {
+                    petImageEl.textContent = petEmojis[gameState.pet.type][ageStage];
+                    petImageEl.style.transform = 'rotate(0deg)';
+                    
+                    // Happy animation
+                    if (gameState.pet.stats.happiness > 80) {
+                        petImageEl.style.animation = 'bounce 1s infinite';
+                    } else {
+                        petImageEl.style.animation = 'float 3s ease-in-out infinite';
+                    }
+                }
+            }
+            
+            // Update age display
+            if (!gameState.pet.isHatched) {
+                document.getElementById('petAge').textContent = formatPetAge();
+            } else {
+                document.getElementById('petAge').textContent = formatPetAge();
+            }
+            
+            // Update stats display
+            updateStatsDisplay();
+            updateActionsDisplay();
+        }
+
+        function updateStats() {
+            // Update all stat bars and check for death conditions
+            if (gameState.pet) {
+                // Check for egg death
+                if (!gameState.pet.isHatched && gameState.pet.stats.warmth <= 0) {
+                    gameState.pet.isDead = true;
+                    clearInterval(gameState.coolingInterval);
+                    showNotification('The egg got too cold and stopped moving... 💀 Click \'Start Over\' to try again.', 'error');
+                    updateDisplay();
+                    updateDisplay();
+                    return; // Exit early if pet is dead
+                }
+                
+                // Update the display
+                updateStatsDisplay();
+                
+                // Also update the display to ensure UI is in sync
+                updateDisplay();
+            }
+        }
+
+        function updateStatsDisplay() {
+            const statsContainer = document.getElementById('statsContainer');
+            
+            if (!gameState.pet.isHatched) {
+                // Show warmth bar for egg stage
+                statsContainer.innerHTML = `
+                    <div class="stat-bar">
+                        <div class="stat-label">🔥 Warmth</div>
+                        <div class="stat-progress">
+                            <div class="stat-fill energy-fill ${gameState.pet.stats.warmth < 5 ? 'critical' : ''}" 
+                                 style="width: ${gameState.pet.stats.warmth}%"></div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Show all pet stats
+                const stats = ['energy', 'hunger', 'happiness', 'hygiene', 'learning'];
+                const statLabels = {
+                    energy: '⚡ Energy',
+                    hunger: '🍎 Hunger',
+                    happiness: '😊 Happiness',
+                    hygiene: '🛁 Hygiene',
+                    learning: '📚 Learning'
+                };
+                
+                statsContainer.innerHTML = stats.map(stat => {
+                    const percentage = (gameState.pet.stats[stat] / gameState.pet.maxStats[stat]) * 100;
+                    const isCritical = percentage < 5;
+                    
+                    return `
+                        <div class="stat-bar">
+                            <div class="stat-label">${statLabels[stat]}</div>
+                            <div class="stat-progress">
+                                <div class="stat-fill ${stat}-fill ${isCritical ? 'critical' : ''}" 
+                                     style="width: ${Math.max(0, percentage)}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function updateActionsDisplay() {
+            const actionsContainer = document.getElementById('actionsContainer');
+            
+            if (!gameState.pet.isHatched) {
+                // Show math problems for egg warming
+                if (!gameState.currentQuiz) {
+                    generateMathProblem();
+                }
+            } else if (gameState.pet.isDead) {
+                actionsContainer.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <h3>💔 Your pet has passed away</h3>
+                        <p>Take better care next time!</p>
+                        <button class="btn" onclick="restartGame()">🔄 Try Again</button>
+                    </div>
+                `;
+            } else {
+                // Show action buttons
+                const actions = [
+                    { name: 'Feed', icon: '🍎', action: 'feed' },
+                    { name: 'Play', icon: '🎾', action: 'play' },
+                    { name: 'Bath', icon: '🛁', action: 'bath' },
+                    { name: 'Sleep', icon: '😴', action: 'sleep' },
+                    { name: 'Teach', icon: '📚', action: 'teach' }
+                ];
+                
+                actionsContainer.innerHTML = actions.map(action => `
+                    <button class="action-btn" onclick="performAction('${action.action}')">
+                        ${action.icon} ${action.name}
+                    </button>
+                `).join('');
+            }
+        }
+
+        function generateMathProblem() {
+            // Pause cooling while showing the question
+            if (gameState.coolingInterval) {
+                clearInterval(gameState.coolingInterval);
+                gameState.coolingInterval = null;
+            }
+
+            const problems = [
+                { q: "What is 3 + 4?", a: ["6", "7", "8", "9"], correct: 1 },
+                { q: "What is 5 - 2?", a: ["2", "3", "4", "5"], correct: 1 },
+                { q: "What is 2 × 3?", a: ["5", "6", "7", "8"], correct: 1 },
+                { q: "What is 8 ÷ 2?", a: ["3", "4", "5", "6"], correct: 1 },
+                { q: "What is 4 + 5?", a: ["8", "9", "10", "7"], correct: 1 },
+                { q: "What is 10 - 3?", a: ["6", "7", "8", "5"], correct: 1 },
+                { q: "What is 3 × 4?", a: ["10", "12", "14", "16"], correct: 1 },
+                { q: "What is 15 ÷ 3?", a: ["4", "5", "6", "3"], correct: 1 }
+            ];
+            
+            // Filter out the current problem to avoid repetition
+            const availableProblems = problems.filter(p => 
+                !gameState.currentQuiz || p.q !== gameState.currentQuiz.q
+            );
+            
+            const problem = availableProblems[Math.floor(Math.random() * availableProblems.length)] || problems[0];
+            gameState.currentQuiz = problem;
+            
+            // Make sure the quiz container is visible
+            const quizContainer = document.getElementById('quizContainer');
+            if (quizContainer) {
+                quizContainer.style.display = 'block';
+                quizContainer.innerHTML = `
+                    <div class="quiz-question">🔥 Keep the egg warm! ${problem.q}</div>
+                    <div class="quiz-answers">
+                        ${problem.a.map((answer, index) => `
+                            <div class="quiz-answer" onclick="answerQuiz(${index})">
+                                ${answer}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                console.error('Quiz container not found!');
+            }
+            
+            // Make sure the quiz is visible
+            if (quizContainer) {
+                quizContainer.style.display = 'block';
+            }
+        }
+
+        function generateQuiz() {
+            const questions = quizQuestions[gameState.quizDifficulty];
+            const question = questions[Math.floor(Math.random() * questions.length)];
+            gameState.currentQuiz = question;
+            
+            const quizContainer = document.getElementById('quizContainer');
+            quizContainer.style.display = 'block';
+            quizContainer.innerHTML = `
+                <div class="quiz-question">📚 ${question.q}</div>
+                <div class="quiz-answers">
+                    ${question.a.map((answer, index) => `
+                        <div class="quiz-answer" onclick="answerQuiz(${index})">
+                            ${answer}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function answerQuiz(answerIndex) {
+            if (!gameState.currentQuiz || !gameState.pet) return;
+            
+            const isCorrect = answerIndex === gameState.currentQuiz.correct;
+            const quizContainer = document.getElementById('quizContainer');
+            
+            if (!gameState.pet.isHatched) {
+                // Egg warming logic
+                if (isCorrect) {
+                    // Increase warmth more significantly to counter the cooling
+                    gameState.pet.stats.warmth = Math.min(100, gameState.pet.stats.warmth + 15);
+                    
+                    // Check for hatching conditions
+                    if (gameState.pet.stats.warmth >= 80) {
+                        // If in perfect range (80-90), higher chance to hatch
+                        const hatchChance = (gameState.pet.stats.warmth >= 80 && gameState.pet.stats.warmth <= 90) ? 0.5 : 0.3;
+                        
+                        if (Math.random() < hatchChance) {
+                            if (gameState.coolingInterval) {
+                                clearInterval(gameState.coolingInterval);
+                                gameState.coolingInterval = null;
+                            }
+                            if (quizContainer) quizContainer.style.display = 'none';
+                            gameState.currentQuiz = null;
+                            gameState.gameStartTime = Date.now(); // Reset game time when hatching
+                            hatchPet();
+                            return;
+                        }
+                    }
+                    
+                    showNotification('Good job! Egg is getting warmer! 🔥', 'success');
+                } else {
+                    // Penalty for wrong answer - immediate cooling
+                    gameState.pet.stats.warmth = Math.max(0, gameState.pet.stats.warmth - 10);
+                    showNotification('Wrong answer! Egg is cooling down! ❄️', 'warning');
+                }
+                
+                // Update the display with new warmth
+                updateStats();
+                
+                // Hide the quiz container
+                if (quizContainer) quizContainer.style.display = 'none';
+                
+                // Clear the current quiz
+                gameState.currentQuiz = null;
+                
+                // Restart cooling mechanism after a short delay
+                setTimeout(() => {
+                    if (gameState.pet && !gameState.pet.isHatched && !gameState.pet.isDead) {
+                        // Queue the next question
+                        setTimeout(() => {
+                            if (gameState.pet && !gameState.pet.isHatched && !gameState.pet.isDead) {
+                                generateMathProblem();
+                            }
+                        }, 500);
+                        
+                        // Restart cooling after the next question is shown
+                        setTimeout(() => {
+                            if (gameState.pet && !gameState.pet.isHatched && !gameState.pet.isDead) {
+                                startCoolingMechanism();
+                            }
+                        }, 600);
+                    }
+                }, 100);
+            } else {
+                // Learning quiz logic
+                if (isCorrect) {
+                    gameState.pet.stats.learning += 20;
+                    gameState.pet.stats.happiness += 10;
+                    
+                    if (gameState.pet.stats.learning > gameState.pet.maxStats.learning) {
+                        gameState.pet.stats.learning = gameState.pet.maxStats.learning;
+                    }
+                    if (gameState.pet.stats.happiness > gameState.pet.maxStats.happiness) {
+                        gameState.pet.stats.happiness = gameState.pet.maxStats.happiness;
+                    }
+                    
+                    showNotification('Excellent! Your pet learned something new! 🎓', 'success');
+                    gameState.currentQuiz = null;
+                    document.getElementById('quizContainer').style.display = 'none';
+                } else {
+                    showNotification('Wrong answer! Try again! 🤔', 'warning');
+                    generateQuiz(); // Generate new question
+                }
+            }
+            
+            updateDisplay();
+        }
+
+        function hatchPet() {
+            gameState.pet.isHatched = true;
+            gameState.pet.stats = {
+                energy: 100,
+                hunger: 100,
+                happiness: 100,
+                hygiene: 100,
+                learning: 100
+            };
+            
+            showNotification(`🎉 ${gameState.pet.name} has hatched! Welcome to the world! 🎉`, 'success');
+            document.getElementById('quizContainer').style.display = 'none';
+            updateDisplay();
+        }
+
+        function performAction(action) {
+            if (gameState.pet.isDead || !gameState.pet.isHatched) return;
+            
+            switch (action) {
+                case 'feed':
+                    gameState.pet.stats.hunger = Math.min(gameState.pet.maxStats.hunger, gameState.pet.stats.hunger + 25);
+                    gameState.pet.stats.happiness = Math.min(gameState.pet.maxStats.happiness, gameState.pet.stats.happiness + 10);
+                    showNotification(`${gameState.pet.name} enjoyed the meal! 🍎`, 'success');
+                    break;
+                    
+                case 'play':
+                    gameState.pet.stats.happiness = Math.min(gameState.pet.maxStats.happiness, gameState.pet.stats.happiness + 30);
+                    gameState.pet.stats.energy = Math.max(0, gameState.pet.stats.energy - 15);
+                    showNotification(`${gameState.pet.name} had fun playing! 🎾`, 'success');
+                    break;
+                    
+                case 'bath':
+                    gameState.pet.stats.hygiene = Math.min(gameState.pet.maxStats.hygiene, gameState.pet.stats.hygiene + 35);
+                    gameState.pet.stats.happiness = Math.min(gameState.pet.maxStats.happiness, gameState.pet.stats.happiness + 15);
+                    showNotification(`${gameState.pet.name} feels fresh and clean! 🛁`, 'success');
+                    break;
+                    
+                case 'sleep':
+                    gameState.pet.stats.energy = Math.min(gameState.pet.maxStats.energy, gameState.pet.stats.energy + 40);
+                    showNotification(`${gameState.pet.name} had a good rest! 😴`, 'success');
+                    break;
+                    
+                case 'teach':
+                    if (!gameState.currentQuiz) {
+                        generateQuiz();
+                    }
+                    return; // Don't update display yet, wait for quiz completion
+            }
+            
+            updateDisplay();
+        }
+
+        function gameLoop() {
+            if (gameState.isBirthdayTime) {
+                if (Date.now() > gameState.birthdayEndTime) {
+                    endBirthday();
+                }
+                return;
+            }
+            
+            if (gameState.pet.isHatched && !gameState.pet.isDead) {
+                const now = Date.now();
+                const timeDiff = now - gameState.lastUpdate;
+                
+                // Update age (5 minutes = 1 year)
+                const newAge = Math.floor((now - gameState.gameStartTime) / (5 * 60 * 1000));
+                if (newAge > gameState.pet.age) {
+                    // Birthday!
+                    gameState.pet.age = newAge;
+                    triggerBirthday();
+                    return;
+                }
+                
+                // Decay stats based on difficulty
+                const decayRate = gameState.difficulty * 0.1;
+                const decayAmount = (timeDiff / 1000) * decayRate;
+                
+                gameState.pet.stats.energy -= decayAmount * 0.8;
+                gameState.pet.stats.hunger -= decayAmount * 1.0;
+                gameState.pet.stats.happiness -= decayAmount * 0.6;
+                gameState.pet.stats.hygiene -= decayAmount * 0.5;
+                gameState.pet.stats.learning -= decayAmount * 1.2; // Decays fastest
+                
+                // Clamp stats to 0
+                Object.keys(gameState.pet.stats).forEach(stat => {
+                    if (gameState.pet.stats[stat] < 0) gameState.pet.stats[stat] = 0;
+                });
+                
+                // Check for death
+                const criticalStats = Object.keys(gameState.pet.stats).filter(stat => 
+                    stat !== 'warmth' && gameState.pet.stats[stat] <= 0
+                );
+                
+                if (criticalStats.length > 0) {
+                    gameState.pet.isDead = true;
+                    showNotification(`💔 ${gameState.pet.name} has died from neglect! Click 'Start Over' to try again.`, 'error');
+                    updateDisplay();
+                }
+                
+                gameState.lastUpdate = now;
+                updateDisplay();
+            }
+        }
+
+        function triggerBirthday() {
+            gameState.isBirthdayTime = true;
+            gameState.birthdayEndTime = Date.now() + 60000; // 1 minute
+            
+            const overlay = document.getElementById('birthdayOverlay');
+            overlay.style.display = 'flex';
+            
+            // Create confetti
+            createConfetti();
+            
+            showNotification(`🎂 ${gameState.pet.name} is ${gameState.pet.age} years old!`, 'success');
+        }
+
+        function endBirthday() {
+            gameState.isBirthdayTime = false;
+            document.getElementById('birthdayOverlay').style.display = 'none';
+            
+            // Remove confetti
+            document.querySelectorAll('.confetti').forEach(el => el.remove());
+        }
+
+        function createConfetti() {
+            const colors = ['#ff69b4', '#ffd700', '#00ff00', '#00bfff', '#ff6347'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+
+        function startGameLoop() {
+            setInterval(gameLoop, 1000); // Update every second
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+
+        function saveAndExit() {
+            showNotification('Game saved! 💾', 'success');
+            setTimeout(() => {
+                document.getElementById('gameScreen').style.display = 'none';
+                document.getElementById('splashScreen').style.display = 'block';
+            }, 1000);
+        }
+
+        function restartGame() {
+            gameState = {
+                player: { name: '', pet: '', petName: '' },
+                pet: {
+                    type: '',
+                    name: '',
+                    age: 0,
+                    isHatched: false,
+                    isDead: false,
+                    stats: {
+                        warmth: 50,
+                        energy: 100,
+                        hunger: 100,
+                        happiness: 100,
+                        hygiene: 100,
+                        learning: 100
+                    },
+                    maxStats: {
+                        energy: 100,
+                        hunger: 100,
+                        happiness: 100,
+                        hygiene: 100,
+                        learning: 100
+                    }
+                },
+                difficulty: 3,
+                quizDifficulty: 'normal',
+                gameStartTime: Date.now(),
+                lastUpdate: Date.now(),
+                isBirthdayTime: false,
+                birthdayEndTime: 0,
+                currentQuiz: null,
+                level: 1
+            };
+            
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('splashScreen').style.display = 'block';
+        }
+
+        function startCoolingMechanism() {
+            // Clear any existing cooling interval
+            if (gameState.coolingInterval) {
+                clearInterval(gameState.coolingInterval);
+            }
+            
+            // Don't start cooling if pet is dead or hatched
+            if (!gameState.pet || gameState.pet.isDead || gameState.pet.isHatched) {
+                return;
+            }
+            
+            // Start new cooling interval (decrease warmth by 1% every 200ms = 5% per second)
+            gameState.coolingInterval = setInterval(() => {
+                if (gameState.pet && !gameState.pet.isHatched && !gameState.pet.isDead) {
+                    gameState.pet.stats.warmth = Math.max(0, gameState.pet.stats.warmth - 1);
+                    
+                    // Only show warning if above 0 but very low
+                    if (gameState.pet.stats.warmth > 0 && gameState.pet.stats.warmth <= 10) {
+                        showNotification('The egg is getting too cold! Keep it warm! ❄️', 'warning');
+                    }
+                    
+                    // Update stats and check for death
+                    updateStats();
+                    // Force update the display to show the new warmth value
+                    updateDisplay();
+                } else {
+                    // Stop cooling if egg is hatched or dead
+                    clearInterval(gameState.coolingInterval);
+                }
+            }, 200);
+        }
+
+        // Initialize the game
+        updateDisplay();
+        // Don't start cooling here - it will start when the game screen is shown
+    </script>
+</body>
+</html>
